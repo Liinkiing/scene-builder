@@ -17,8 +17,8 @@ export default class Grid extends THREE.Object3D {
     this.listeners = []
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
-    window.addEventListener('mousemove', this.onMouseMove.bind(this), false)
-    window.addEventListener('mouseup', this.onMouseClick.bind(this), false)
+    document.querySelector('#scene-builder').addEventListener('mousemove', this.onMouseMove.bind(this), false)
+    document.querySelector('#scene-builder').addEventListener('mouseup', this.onMouseClick.bind(this), false)
   }
 
   init () {
@@ -55,9 +55,8 @@ export default class Grid extends THREE.Object3D {
   addObjectToTile (object, x, z) {
     let posX, posY, posZ
     [posX, posY, posZ] = [x * this.options.cubeSize + (this.options.cubeSize / 2), this.options.cubeSize, z * this.options.cubeSize + (this.options.cubeSize / 2)]
-    object.scale.set(200, 200, 200)
     object.position.x = posX
-    object.position.y = posY
+    object.position.y = posY + (object.userData.yOffset || 0)
     object.position.z = posZ
     this.scene.add(object)
   }

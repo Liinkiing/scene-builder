@@ -1,6 +1,24 @@
 {
   "christmas_tree": {
-    "mtl": "christmas_tree.mtl",
-    "obj": "christmas_tree.obj"
+    "mtlPath": "christmas_tree.mtl",
+    "objPath": "christmas_tree.obj",
+    "imgPath": "christmas_tree.png",
+    "scale": 200,
+    "name": "Arbre de Noël"
+  },
+  "christmas_present": {
+    "mtlPath": "christmas_present.mtl",
+    "objPath": "christmas_present.obj",
+    "imgPath": "christmas_present.jpg",
+    "scale": 30,
+    "yOffset": -80,
+    "name": "Cadeaux de Noël"
+  },
+  "snowman": {
+    "mtlPath": "snowman.mtl",
+    "objPath": "snowman.obj",
+    "imgPath": "christmas_tree.jpg",
+    "scale": 200,
+    "name": "Bonhomme de neige"
   }
 }

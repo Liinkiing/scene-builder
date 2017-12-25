@@ -1,20 +1,32 @@
 <template>
   <div id="scene-builder">
+    <div class="controls">
+      <input type="range" min="0" max="360" v-model="userPreferences.rotation">
+      rotation : {{ userPreferences.rotation }}°
+    </div>
   </div>
 </template>
 
 <script>
-import obj from '../../assets/objects/christmas_tree.obj'
-import mtl from '../../assets/objects/christmas_tree.mtl'
-import ObjectsManager from '../../Utils/ObjectsManager'
 import Grid from './Grid'
+import { objectManager } from '../../utils/ObjectsManager'
 
 let THREE = require('three')
-let OrbitControls = require('three-orbit-controls')(THREE)
+// let OrbitControls = require('three-orbit-controls')(THREE)
 let frustumSize = 1000
 
 export default {
   name: 'scene-builder',
+  props: {
+    selectedObject: {type: String, required: true}
+  },
+  data () {
+    return {
+      userPreferences: {
+        rotation: 0
+      }
+    }
+  },
   mounted () {
     this.container = document.querySelector('#scene-builder')
     let aspect = window.innerWidth / window.innerHeight
@@ -27,12 +39,11 @@ export default {
     this.grid = new Grid(12)
     this.grid.attachCamera(this.camera)
     this.grid.attachScene(this.scene)
-    this.objectManager = new ObjectsManager()
     this.initEventsListeners()
     this.initLights()
     this.loadObjects()
     // eslint-disable-next-line no-unused-vars
-    let controls = new OrbitControls(this.camera)
+    // let controls = new OrbitControls(this.camera)
     this.renderer = new THREE.WebGLRenderer({antialias: true})
     this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.setSize(window.innerWidth, window.innerHeight)
@@ -45,11 +56,6 @@ export default {
   },
   methods: {
     loadObjects () {
-      let objects = require('../../assets/objects/objects')
-      Object.keys(objects).forEach(key => {
-        this.objectManager.addObject(key, require('../../assets/objects/' + objects[key].mtl), require('../../assets/objects/' + objects[key].obj))
-        console.log(this.objectManager)
-      })
     },
     initLights () {
       var directionalLight = new THREE.DirectionalLight(0xffffff)
@@ -84,8 +90,9 @@ export default {
     initEventsListeners () {
       this.grid.addEventListener('caseclicked', (e, tile) => {
         if (e.which !== 1) return
-        this.objectManager.loadObject('christmas_tree')
+        objectManager.loadObject(this.selectedObject)
           .then(object => {
+            object.rotation.y = this.userPreferences.rotation
             this.grid.addObjectToTile(object, tile.userData.tilePosition.x, tile.userData.tilePosition.z)
           })
       })
@@ -101,5 +108,12 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
+    & .controls {
+      color: whitesmoke;
+      position: absolute;
+      z-index: 9999;
+      right: 40px;
+      top: 40px;
+    }
   }
 </style>
