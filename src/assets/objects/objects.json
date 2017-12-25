@@ -3,6 +3,7 @@
     "mtlPath": "christmas_tree.mtl",
     "objPath": "christmas_tree.obj",
     "imgPath": "christmas_tree.png",
+    "yOffset": 60,
     "scale": 200,
     "name": "Arbre de Noël"
   },
@@ -11,7 +12,7 @@
     "objPath": "christmas_present.obj",
     "imgPath": "christmas_present.jpg",
     "scale": 30,
-    "yOffset": -80,
+    "yOffset": -35,
     "name": "Cadeaux de Noël"
   },
   "snowman": {
@@ -19,6 +20,7 @@
     "objPath": "snowman.obj",
     "imgPath": "christmas_tree.jpg",
     "scale": 200,
+    "yOffset": 60,
     "name": "Bonhomme de neige"
   }
 }

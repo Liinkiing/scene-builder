@@ -1,13 +1,17 @@
 <template>
   <div  class="scene-builder-navigation">
     <ul>
-      <scene-builder-navigation-card v-for="(object, key) in objects" :object="object" :objectKey="key" :class="{active: key === selectedObject}"></scene-builder-navigation-card>
+      <scene-builder-navigation-card v-for="(object, key) in objects" :object="object" :objectKey="key" :key="key" :class="{active: key === selectedObject}"></scene-builder-navigation-card>
     </ul>
+    <div class="controls">
+      <button @click="buttonEraseClick">Effacer</button>
+    </div>
   </div>
 </template>
 
 <script>
 import { appStore } from '../../stores/AppStore'
+import { EventBus } from '../../main'
 import SceneBuilderNavigationCard from './SceneBuilderNavigationCard'
 
 export default {
@@ -19,6 +23,11 @@ export default {
   data () {
     return {
       objects: appStore.getObjects()
+    }
+  },
+  methods: {
+    buttonEraseClick () {
+      EventBus.$emit('grid.clear')
     }
   }
 }

@@ -1,14 +1,11 @@
 <template>
   <div id="scene-builder">
-    <div class="controls">
-      <input type="range" min="0" max="360" v-model="userPreferences.rotation">
-      rotation : {{ userPreferences.rotation }}°
-    </div>
   </div>
 </template>
 
 <script>
 import Grid from './Grid'
+import { EventBus } from '../../main'
 import { objectManager } from '../../utils/ObjectsManager'
 
 let THREE = require('three')
@@ -18,14 +15,7 @@ let frustumSize = 1000
 export default {
   name: 'scene-builder',
   props: {
-    selectedObject: {type: String, required: true}
-  },
-  data () {
-    return {
-      userPreferences: {
-        rotation: 0
-      }
-    }
+    selectedObject: {type: String, required: true},
   },
   mounted () {
     this.container = document.querySelector('#scene-builder')
@@ -39,6 +29,9 @@ export default {
     this.grid = new Grid(12)
     this.grid.attachCamera(this.camera)
     this.grid.attachScene(this.scene)
+    window.THREE = THREE
+    window.scene = this.scene
+    EventBus.$on('grid.clear', () => { this.grid.clearGrid() })
     this.initEventsListeners()
     this.initLights()
     this.loadObjects()
@@ -90,11 +83,28 @@ export default {
     initEventsListeners () {
       this.grid.addEventListener('caseclicked', (e, tile) => {
         if (e.which !== 1) return
-        objectManager.loadObject(this.selectedObject)
-          .then(object => {
-            object.rotation.y = this.userPreferences.rotation
-            this.grid.addObjectToTile(object, tile.userData.tilePosition.x, tile.userData.tilePosition.z)
-          })
+        if (tile.children.length > 0) {
+          if (tile.children[0].name !== this.selectedObject) {
+            tile.children = []
+            objectManager.loadObject(this.selectedObject)
+              .then(object => {
+                object.name = this.selectedObject
+                this.grid.addObjectToTile(object, tile)
+              })
+          }
+        } else {
+          objectManager.loadObject(this.selectedObject)
+            .then(object => {
+              object.name = this.selectedObject
+              this.grid.addObjectToTile(object, tile)
+            })
+        }
+      })
+      this.grid.addEventListener('editing', (e, tile) => {
+        let deltaX = e.clientX - this.grid.lastMousePosition.x
+        this.grid.lastMousePosition.x = e.clientX
+        this.grid.lastMousePosition.y = e.clientY
+        if (tile.children.length > 0) tile.children[0].rotateY(deltaX / 100)
       })
     }
   }
@@ -108,12 +118,5 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
-    & .controls {
-      color: whitesmoke;
-      position: absolute;
-      z-index: 9999;
-      right: 40px;
-      top: 40px;
-    }
   }
 </style>

@@ -9,6 +9,8 @@ export default class Grid extends THREE.Object3D {
       activeColor: 'violet',
       defaultColor: 'red'
     }
+    this.editingTile = null
+    this.lastMousePosition = {x: 0, y: 0}
     this.options = Object.assign({}, defaults, options)
     this.gridHelper = new THREE.GridHelper(10000, 100)
     this.container = new THREE.Group()
@@ -18,7 +20,8 @@ export default class Grid extends THREE.Object3D {
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
     document.querySelector('#scene-builder').addEventListener('mousemove', this.onMouseMove.bind(this), false)
-    document.querySelector('#scene-builder').addEventListener('mouseup', this.onMouseClick.bind(this), false)
+    document.querySelector('#scene-builder').addEventListener('mousedown', this.onMouseDown.bind(this), false)
+    document.querySelector('#scene-builder').addEventListener('mouseup', () => { this.editingTile = null }, false)
   }
 
   init () {
@@ -47,22 +50,31 @@ export default class Grid extends THREE.Object3D {
     this.scene.add(this.container)
   }
 
+  clearGrid () {
+    this.container.children
+      .filter(child => child.children.length > 0)
+      .forEach(child => { child.children = []; child.userData.active = false; })
+  }
+
   onMouseMove (e) {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1
+    if (this.editingTile && this.listeners['editing'] && this.listeners['editing'].length > 0) {
+      this.listeners['editing'].forEach(listener => { listener(e, this.editingTile) })
+    }
   }
 
-  addObjectToTile (object, x, z) {
-    let posX, posY, posZ
-    [posX, posY, posZ] = [x * this.options.cubeSize + (this.options.cubeSize / 2), this.options.cubeSize, z * this.options.cubeSize + (this.options.cubeSize / 2)]
-    object.position.x = posX
+  addObjectToTile (object, tile) {
+    let posY = this.options.cubeSize
+    // [posX, posY, posZ] = [tile.userData.tilePosition.x * this.options.cubeSize + (this.options.cubeSize / 2), , tile.userData.tilePosition.z * this.options.cubeSize + (this.options.cubeSize / 2)]
+    object.position.x = 0
     object.position.y = posY + (object.userData.yOffset || 0)
-    object.position.z = posZ
-    this.scene.add(object)
+    object.position.z = 0
+    tile.add(object)
   }
 
-  onMouseClick (e) {
-    console.log(e)
+  onMouseDown (e) {
+    this.lastMousePosition = {x: e.clientX, y: e.clientY}
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1
     this.raycaster.setFromCamera(this.mouse, this.camera)
@@ -70,10 +82,15 @@ export default class Grid extends THREE.Object3D {
     for (let i = 0; i < intersects.length; i++) {
       if (i === 0 && 'tag' in intersects[i].object.userData && intersects[i].object.userData.tag === 'FLOOR') {
         if (e.which === 1) {
-          intersects[i].object.userData['active'] = !intersects[i].object.userData['active']
+          intersects[i].object.userData['active'] = true
+          this.editingTile = intersects[i].object
+        } else if (e.which === 3) {
+          intersects[i].object.children = []
+          this.editingTile = null
+          intersects[i].object.userData['active'] = false
         }
-        if (this.listeners['caseclicked'] && typeof this.listeners['caseclicked'] === 'function') {
-          this.listeners['caseclicked'](e, intersects[i].object)
+        if (this.listeners['caseclicked'] && this.listeners['caseclicked'].length > 0) {
+          this.listeners['caseclicked'].forEach(listener => { listener(e, intersects[i].object) })
         }
       }
     }
@@ -98,7 +115,7 @@ export default class Grid extends THREE.Object3D {
     this.container.children
       .filter(tile => tile.userData['active'])
       .forEach(tile => tile.material.color.set(this.options.activeColor))
-    if (intersects.length > 0) {
+    if (!this.editingTile && intersects.length > 0) {
       for (let i = 0; i < intersects.length; i++) {
         if (i === 0 && 'tag' in intersects[i].object.userData && intersects[i].object.userData.tag === 'FLOOR') {
           intersects[i].object.material.color.set(this.options.hoverColor)
@@ -108,6 +125,8 @@ export default class Grid extends THREE.Object3D {
   }
 
   addEventListener (eventName, callback) {
-    this.listeners[eventName] = callback
+    if (!this.listeners[eventName]) this.listeners[eventName] = []
+    this.listeners[eventName].push(callback)
+    console.log(this.listeners)
   }
 }

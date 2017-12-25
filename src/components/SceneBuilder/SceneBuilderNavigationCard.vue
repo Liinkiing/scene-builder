@@ -16,7 +16,6 @@ export default {
   },
   methods: {
     setActiveObject (key) {
-      console.log('cc')
       appStore.setActiveObject(key)
     }
   }

@@ -1,7 +1,8 @@
 <template>
   <div class="scene-builder-page">
+    <scene-builder :selected-object="appState.selectedObject">
+    </scene-builder>
     <scene-builder-navigation :selected-object="appState.selectedObject"></scene-builder-navigation>
-    <scene-builder :selected-object="appState.selectedObject"></scene-builder>
   </div>
 </template>
 

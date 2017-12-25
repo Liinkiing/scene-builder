@@ -11,7 +11,6 @@ class AppStore {
         }
       }
     }
-    console.log(objects)
     this.state = {
       objects,
       selectedObject: 'christmas_tree'
