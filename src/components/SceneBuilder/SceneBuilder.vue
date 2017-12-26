@@ -6,7 +6,9 @@
 <script>
 import Grid from './Grid'
 import { EventBus } from '../../main'
+import { sceneSerializer } from '../../utils/SceneSerializer'
 import { objectManager } from '../../utils/ObjectsManager'
+import { apiWrapper } from '../../utils/ApiWrapper'
 
 let THREE = require('three')
 // let OrbitControls = require('three-orbit-controls')(THREE)
@@ -15,7 +17,9 @@ let frustumSize = 1000
 export default {
   name: 'scene-builder',
   props: {
-    selectedObject: {type: String, required: true},
+    selectedObject: {type: String},
+    editingMode: {type: Boolean, default: true},
+    selectedScene: {type: Object, default: null}
   },
   mounted () {
     this.container = document.querySelector('#scene-builder')
@@ -24,17 +28,27 @@ export default {
     this.camera.position.y = 400
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color(0xf0f0f0)
-    let axesHelper = new THREE.AxisHelper(1000)
-    this.scene.add(axesHelper)
-    this.grid = new Grid(12)
+    if (this.editingMode) {
+      let axesHelper = new THREE.AxisHelper(1000)
+      this.scene.add(axesHelper)
+    }
+    this.grid = new Grid(12, {
+      activeColor: 'red',
+      editionEnabled: this.editingMode
+    })
     this.grid.attachCamera(this.camera)
     this.grid.attachScene(this.scene)
     window.THREE = THREE
     window.scene = this.scene
-    EventBus.$on('grid.clear', () => { this.grid.clearGrid() })
-    this.initEventsListeners()
+    if (this.editingMode) {
+      EventBus.$on('grid.clear', () => { this.grid.clearGrid() })
+      EventBus.$on('grid.export', () => { this.exportGrid() })
+      this.initEventsListeners()
+    }
     this.initLights()
-    this.loadObjects()
+    if (!this.editingMode && this.selectedScene) {
+      this.grid.load(this.selectedScene.data)
+    }
     // eslint-disable-next-line no-unused-vars
     // let controls = new OrbitControls(this.camera)
     this.renderer = new THREE.WebGLRenderer({antialias: true})
@@ -48,7 +62,10 @@ export default {
     this.renderer.animate(this.render.bind(this))
   },
   methods: {
-    loadObjects () {
+    exportGrid () {
+      let dataGrid = sceneSerializer.serialize(this.grid)
+      apiWrapper.post('scenes', { data: dataGrid })
+        .then(data => console.log(data))
     },
     initLights () {
       var directionalLight = new THREE.DirectionalLight(0xffffff)

@@ -5,6 +5,8 @@
     </ul>
     <div class="controls">
       <button @click="buttonEraseClick">Effacer</button>
+      <button @click="buttonImportClick">Importer</button>
+      <button @click="buttonExportClick">Exporter</button>
     </div>
   </div>
 </template>
@@ -28,6 +30,12 @@ export default {
   methods: {
     buttonEraseClick () {
       EventBus.$emit('grid.clear')
+    },
+    buttonImportClick () {
+      EventBus.$emit('grid.import')
+    },
+    buttonExportClick () {
+      EventBus.$emit('grid.export')
     }
   }
 }

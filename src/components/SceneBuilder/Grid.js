@@ -1,3 +1,4 @@
+import { objectManager } from '../../utils/ObjectsManager'
 let THREE = require('three')
 
 export default class Grid extends THREE.Object3D {
@@ -7,7 +8,8 @@ export default class Grid extends THREE.Object3D {
       cubeSize: 100,
       hoverColor: 'yellow',
       activeColor: 'violet',
-      defaultColor: 'red'
+      defaultColor: 'red',
+      editionEnabled: true
     }
     this.editingTile = null
     this.lastMousePosition = {x: 0, y: 0}
@@ -19,9 +21,11 @@ export default class Grid extends THREE.Object3D {
     this.listeners = []
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
-    document.querySelector('#scene-builder').addEventListener('mousemove', this.onMouseMove.bind(this), false)
-    document.querySelector('#scene-builder').addEventListener('mousedown', this.onMouseDown.bind(this), false)
-    document.querySelector('#scene-builder').addEventListener('mouseup', () => { this.editingTile = null }, false)
+    if (this.options.editionEnabled) {
+      document.querySelector('#scene-builder').addEventListener('mousemove', this.onMouseMove.bind(this), false)
+      document.querySelector('#scene-builder').addEventListener('mousedown', this.onMouseDown.bind(this), false)
+      document.querySelector('#scene-builder').addEventListener('mouseup', () => { this.editingTile = null }, false)
+    }
   }
 
   init () {
@@ -53,7 +57,7 @@ export default class Grid extends THREE.Object3D {
   clearGrid () {
     this.container.children
       .filter(child => child.children.length > 0)
-      .forEach(child => { child.children = []; child.userData.active = false; })
+      .forEach(child => { child.children = []; child.userData.active = false })
   }
 
   onMouseMove (e) {
@@ -71,6 +75,7 @@ export default class Grid extends THREE.Object3D {
     object.position.y = posY + (object.userData.yOffset || 0)
     object.position.z = 0
     tile.add(object)
+    tile.userData.active = true
   }
 
   onMouseDown (e) {
@@ -107,6 +112,7 @@ export default class Grid extends THREE.Object3D {
   }
 
   render () {
+    if (!this.options.editionEnabled) return
     this.raycaster.setFromCamera(this.mouse, this.camera)
     let intersects = this.raycaster.intersectObjects(this.container.children)
     this.container.children
@@ -121,6 +127,19 @@ export default class Grid extends THREE.Object3D {
           intersects[i].object.material.color.set(this.options.hoverColor)
         }
       }
+    }
+  }
+
+  load (gridData) {
+    this.clearGrid()
+    for (let tileName in gridData.tiles) {
+      let tile = this.container.children.filter(tile => tile.name === tileName)[0]
+      let objectName = gridData.tiles[tileName]
+      objectManager.loadObject(objectName)
+      .then(object => {
+        object.name = objectName
+        this.addObjectToTile(object, tile)
+      })
     }
   }
 

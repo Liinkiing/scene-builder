@@ -1,3 +1,5 @@
+import { apiWrapper } from '../utils/ApiWrapper'
+
 class AppStore {
   constructor () {
     let objects = require('../assets/objects/objects')
@@ -13,8 +15,18 @@ class AppStore {
     }
     this.state = {
       objects,
-      selectedObject: 'christmas_tree'
+      selectedObject: 'christmas_tree',
+      currentScene: null
     }
+  }
+
+  setCurrentScene (hash) {
+    apiWrapper.get('scenes')
+      .then(data => {
+        let scenes = data.filter(
+          scene => scene.hash === hash)
+        this.state.currentScene = scenes.length === 0 ? null : scenes[0]
+      })
   }
 
   setActiveObject (objectKey) {
