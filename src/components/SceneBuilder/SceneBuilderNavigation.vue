@@ -4,9 +4,9 @@
       <scene-builder-navigation-card v-for="(object, key) in objects" :object="object" :objectKey="key" :key="key" :class="{active: key === selectedObject}"></scene-builder-navigation-card>
     </ul>
     <div class="controls">
-      <button @click="buttonEraseClick">Effacer</button>
+      <button v-if="itemsPlaced > 0" @click="buttonEraseClick">Effacer</button>
       <button @click="buttonImportClick">Importer</button>
-      <button @click="buttonExportClick">Exporter</button>
+      <button v-if="itemsPlaced > 0" @click="buttonExportClick">Exporter</button>
     </div>
   </div>
 </template>
@@ -24,12 +24,22 @@ export default {
   },
   data () {
     return {
-      objects: appStore.getObjects()
+      objects: appStore.getObjects(),
+      itemsPlaced: 0
     }
+  },
+  mounted () {
+    EventBus.$on('grid.item_removed', () => {
+      if (this.itemsPlaced > 0) this.itemsPlaced--
+    })
+    EventBus.$on('grid.item_added', () => {
+      this.itemsPlaced++
+    })
   },
   methods: {
     buttonEraseClick () {
       EventBus.$emit('grid.clear')
+      this.itemsPlaced = 0
     },
     buttonImportClick () {
       EventBus.$emit('grid.import')

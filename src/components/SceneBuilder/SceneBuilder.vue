@@ -29,8 +29,9 @@ export default {
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color(0xf0f0f0)
     if (this.editingMode) {
+      let gridHelper = new THREE.GridHelper(10000, 100)
       let axesHelper = new THREE.AxisHelper(1000)
-      this.scene.add(axesHelper)
+      this.scene.add(axesHelper, gridHelper)
     }
     this.grid = new Grid(12, {
       activeColor: 'red',
@@ -48,6 +49,7 @@ export default {
     this.initLights()
     if (!this.editingMode && this.selectedScene) {
       this.grid.load(this.selectedScene.data)
+      this.theta = 0
     }
     // eslint-disable-next-line no-unused-vars
     // let controls = new OrbitControls(this.camera)
@@ -64,6 +66,7 @@ export default {
   methods: {
     exportGrid () {
       let dataGrid = sceneSerializer.serialize(this.grid)
+      console.log(dataGrid)
       apiWrapper.post('scenes', { data: dataGrid })
         .then(data => console.log(data))
     },
@@ -77,9 +80,16 @@ export default {
     },
 
     render () {
-      this.camera.position.x = 500
-      this.camera.position.z = 500
-      this.camera.lookAt(this.scene.position)
+      if (!this.editingMode) {
+        this.theta += 0.0005
+        this.camera.position.x = 1000 * Math.cos(this.theta)
+        this.camera.position.z = 1000 * Math.sin(this.theta)
+        this.camera.lookAt(this.scene.position)
+      } else {
+        this.camera.position.x = 500
+        this.camera.position.z = 500
+        this.camera.lookAt(this.scene.position)
+      }
       this.renderer.render(this.scene, this.camera)
       this.grid.render()
     },
@@ -99,6 +109,11 @@ export default {
 
     initEventsListeners () {
       this.grid.addEventListener('caseclicked', (e, tile) => {
+        if (e.which === 3 && tile.children.length > 0) {
+          tile.children = []
+          EventBus.$emit('grid.item_removed')
+          return
+        }
         if (e.which !== 1) return
         if (tile.children.length > 0) {
           if (tile.children[0].name !== this.selectedObject) {
@@ -112,6 +127,7 @@ export default {
         } else {
           objectManager.loadObject(this.selectedObject)
             .then(object => {
+              EventBus.$emit('grid.item_added')
               object.name = this.selectedObject
               this.grid.addObjectToTile(object, tile)
             })

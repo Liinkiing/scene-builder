@@ -6,7 +6,15 @@ class SceneSerializer {
     grid.container.children
       .filter(tile => tile.children.length > 0)
       .forEach(tile => {
-        json.tiles[tile.name] = tile.children[0].name
+        console.log(tile.children[0])
+        json.tiles[tile.name] = {
+          objectName: tile.children[0].name,
+          rotation: {
+            x: tile.children[0].rotation.x,
+            y: tile.children[0].rotation.y,
+            z: tile.children[0].rotation.z
+          }
+        }
       })
     return json
   }

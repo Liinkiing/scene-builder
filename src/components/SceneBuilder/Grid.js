@@ -14,7 +14,6 @@ export default class Grid extends THREE.Object3D {
     this.editingTile = null
     this.lastMousePosition = {x: 0, y: 0}
     this.options = Object.assign({}, defaults, options)
-    this.gridHelper = new THREE.GridHelper(10000, 100)
     this.container = new THREE.Group()
     this.container.name = 'Floor'
     this.size = size
@@ -90,7 +89,6 @@ export default class Grid extends THREE.Object3D {
           intersects[i].object.userData['active'] = true
           this.editingTile = intersects[i].object
         } else if (e.which === 3) {
-          intersects[i].object.children = []
           this.editingTile = null
           intersects[i].object.userData['active'] = false
         }
@@ -107,7 +105,6 @@ export default class Grid extends THREE.Object3D {
 
   attachScene (scene) {
     this.scene = scene
-    this.scene.add(this.gridHelper)
     this.init()
   }
 
@@ -134,10 +131,11 @@ export default class Grid extends THREE.Object3D {
     this.clearGrid()
     for (let tileName in gridData.tiles) {
       let tile = this.container.children.filter(tile => tile.name === tileName)[0]
-      let objectName = gridData.tiles[tileName]
-      objectManager.loadObject(objectName)
+      let tileInformation = gridData.tiles[tileName]
+      objectManager.loadObject(tileInformation.objectName)
       .then(object => {
-        object.name = objectName
+        object.name = tileInformation.objectName
+        object.rotation.set(tileInformation.rotation.x, tileInformation.rotation.y, tileInformation.rotation.z)
         this.addObjectToTile(object, tile)
       })
     }
