@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "imports-loader": "^0.7.1",
+    "sweet-modal-vue": "^2.0.0",
     "three": "^0.89.0",
     "three-effectcomposer-es6": "^0.0.4",
     "three-mtl-loader": "^1.0.2",

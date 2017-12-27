@@ -1,8 +1,9 @@
 <template>
-  <div class="scene-viewer-page" v-if="scene">
+  <div v-if="isLoading">Chargement...</div>
+  <div class="scene-viewer-page" v-else-if="scene">
     <scene-builder :editing-mode="false" :selected-scene="scene"></scene-builder>
   </div>
-  <div class="scene-viewer-page" v-else>
+  <div class="scene-viewer-page" v-else-if="!isLoading && !scene">
     <h1>Cette scène n'existe pas !</h1>
   </div>
 </template>
@@ -16,7 +17,8 @@ export default {
   name: 'scene-viewer-page',
   data () {
     return {
-      appState: appStore.state
+      appState: appStore.state,
+      isLoading: true
     }
   },
   computed: {
@@ -26,6 +28,9 @@ export default {
   },
   mounted () {
     appStore.setCurrentScene(this.$route.params.hash)
+      .then(() => {
+        this.isLoading = false
+      })
   }
 }
 </script>

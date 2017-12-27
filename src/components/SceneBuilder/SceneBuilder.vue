@@ -87,7 +87,9 @@ export default {
       let dataGrid = sceneSerializer.serialize(this.grid)
       console.log(dataGrid)
       apiWrapper.post('scenes', { data: dataGrid })
-        .then(data => console.log(data))
+        .then(data => {
+          EventBus.$emit('grid.exported', data)
+        })
     },
     initLights () {
       var directionalLight = new THREE.DirectionalLight(0xffffff)

@@ -21,12 +21,15 @@ class AppStore {
   }
 
   setCurrentScene (hash) {
-    apiWrapper.get('scenes')
-      .then(data => {
-        let scenes = data.filter(
-          scene => scene.hash === hash)
-        this.state.currentScene = scenes.length === 0 ? null : scenes[0]
-      })
+    return new Promise(resolve => {
+      apiWrapper.get('scenes')
+        .then(data => {
+          let scenes = data.filter(
+            scene => scene.hash === hash)
+          this.state.currentScene = scenes.length === 0 ? null : scenes[0]
+          resolve()
+        })
+    })
   }
 
   setActiveObject (objectKey) {
