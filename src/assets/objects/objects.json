@@ -22,5 +22,12 @@
     "scale": 200,
     "yOffset": 60,
     "name": "Bonhomme de neige"
+  },
+  "bus": {
+    "mtlPath": "bus.mtl",
+    "objPath": "bus.obj",
+    "imgPath": "christmas_tree.jpg",
+    "scale": 100,
+    "name": "Bus"
   }
 }

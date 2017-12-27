@@ -34,7 +34,8 @@ export default class Grid extends THREE.Object3D {
         let material = new THREE.MeshStandardMaterial({
           color: 'red',
           overdraw: 0.5,
-          roughness: 0.4,
+          roughness: 1,
+          flatShading: true,
           metalness: 0
         })
         let cube = new THREE.Mesh(geometry, material)
@@ -73,6 +74,7 @@ export default class Grid extends THREE.Object3D {
     object.position.x = 0
     object.position.y = posY + (object.userData.yOffset || 0)
     object.position.z = 0
+    console.log(object)
     tile.add(object)
     tile.userData.active = true
   }

@@ -42,6 +42,14 @@ module.exports = {
     rules: [
       ...(config.dev.useEslint ? [createLintingRule()] : []),
       {
+        test: require.resolve('three/examples/js/shaders/FXAAShader'),
+        use: "imports-loader?THREE=three"
+      },
+      {
+        test: require.resolve('three/examples/js/postprocessing/UnrealBloomPass'),
+        use: "imports-loader?THREE=three"
+      },
+      {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: vueLoaderConfig

@@ -4,13 +4,16 @@
 </template>
 
 <script>
+  /* eslint-disable */
+
+import EffectComposer, { RenderPass, ShaderPass, CopyShader } from 'three-effectcomposer-es6'
 import Grid from './Grid'
 import { EventBus } from '../../main'
 import { sceneSerializer } from '../../utils/SceneSerializer'
 import { objectManager } from '../../utils/ObjectsManager'
 import { apiWrapper } from '../../utils/ApiWrapper'
-
 let THREE = require('three')
+import './THREEMadness'
 // let OrbitControls = require('three-orbit-controls')(THREE)
 let frustumSize = 1000
 
@@ -27,7 +30,7 @@ export default {
     this.camera = new THREE.OrthographicCamera(frustumSize * aspect / -2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / -2, 2, 9000)
     this.camera.position.y = 400
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color(0xf0f0f0)
+    this.scene.background = new THREE.Color('cyan')
     if (this.editingMode) {
       let gridHelper = new THREE.GridHelper(10000, 100)
       let axesHelper = new THREE.AxisHelper(1000)
@@ -51,11 +54,27 @@ export default {
       this.grid.load(this.selectedScene.data)
       this.theta = 0
     }
-    // eslint-disable-next-line no-unused-vars
     // let controls = new OrbitControls(this.camera)
     this.renderer = new THREE.WebGLRenderer({antialias: true})
     this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.setSize(window.innerWidth, window.innerHeight)
+
+    this.composer = new EffectComposer(this.renderer)
+    this.composer.addPass(new RenderPass(this.scene, this.camera))
+
+    this.copyPass = new ShaderPass(CopyShader)
+    this.composer.addPass(this.copyPass)
+    this.fxaaPass = new ShaderPass(THREE.FXAAShader)
+    this.fxaaPass.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
+    this.fxaaPass.renderToScreen = true
+    this.composer.addPass(this.fxaaPass)
+
+    if (!this.editingMode) {
+      this.bloomPass = new THREE.UnrealBloomPass({x: window.innerWidth, y: window.innerHeight}, 2, 0.57, 0.80)
+      this.bloomPass.renderToScreen = true
+      this.composer.addPass(this.bloomPass)
+    }
+
     this.container.appendChild(this.renderer.domElement)
 
     window.addEventListener('resize', this.onWindowResize.bind(this), false)
@@ -72,6 +91,7 @@ export default {
     },
     initLights () {
       var directionalLight = new THREE.DirectionalLight(0xffffff)
+      directionalLight.name = 'Light'
       directionalLight.position.x = 1
       directionalLight.position.y = 1
       directionalLight.position.z = 1
@@ -90,7 +110,7 @@ export default {
         this.camera.position.z = 500
         this.camera.lookAt(this.scene.position)
       }
-      this.renderer.render(this.scene, this.camera)
+      this.composer.render(this.scene, this.camera)
       this.grid.render()
     },
 
@@ -105,6 +125,7 @@ export default {
       this.camera.updateProjectionMatrix()
 
       this.renderer.setSize(window.innerWidth, window.innerHeight)
+      this.fxaaPass.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
     },
 
     initEventsListeners () {
