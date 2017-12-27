@@ -4,8 +4,8 @@
     </scene-builder>
     <scene-builder-navigation :selected-object="appState.selectedObject"></scene-builder-navigation>
     <sweet-modal ref="exportModal" @close="onExportModalClose" icon="success" title="Export réussi">
-      <p v-if="exportedGrid">
-        Voici l'url de votre scène : <router-link :to="{name: 'scene.view', params: {hash: exportedGrid.hash}}">{{ getSceneViewUrl() }}</router-link>
+      <p v-if="exportedScene">
+        Voici l'url de votre scène : <router-link :to="{name: 'scene.view', params: {id: exportedScene.id}}">{{ getSceneViewUrl() }}</router-link>
       </p>
     </sweet-modal>
   </div>
@@ -27,22 +27,22 @@ export default {
   },
   methods: {
     onExportModalClose () {
-      this.exportedGrid = null
+      this.exportedScene = null
     },
     getSceneViewUrl () {
-      return window.location.origin + this.$router.resolve({name: 'scene.view', params: {hash: this.exportedGrid.hash}}).route.fullPath
+      return window.location.origin + this.$router.resolve({name: 'scene.view', params: {id: this.exportedScene.id}}).route.fullPath
     }
   },
   data () {
     return {
       appState: appStore.state,
-      exportedGrid: null
+      exportedScene: null
     }
   },
   mounted () {
     EventBus.$on('grid.exported', (grid) => {
       console.log(grid, 'exported')
-      this.exportedGrid = grid
+      this.exportedScene = grid
       this.$refs.exportModal.open()
     })
   }

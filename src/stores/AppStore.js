@@ -20,13 +20,11 @@ class AppStore {
     }
   }
 
-  setCurrentScene (hash) {
+  setCurrentScene (id) {
     return new Promise(resolve => {
-      apiWrapper.get('scenes')
+      apiWrapper.get(`scenes/${id}`)
         .then(data => {
-          let scenes = data.filter(
-            scene => scene.hash === hash)
-          this.state.currentScene = scenes.length === 0 ? null : scenes[0]
+          this.state.currentScene = data
           resolve()
         })
     })

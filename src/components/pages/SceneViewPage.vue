@@ -27,7 +27,7 @@ export default {
     }
   },
   mounted () {
-    appStore.setCurrentScene(this.$route.params.hash)
+    appStore.setCurrentScene(this.$route.params.id)
       .then(() => {
         this.isLoading = false
       })

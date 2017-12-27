@@ -15,7 +15,7 @@ export default new Router({
       component: SceneBuilderPage
     },
     {
-      path: '/view/:hash',
+      path: '/view/:id',
       name: 'scene.view',
       component: SceneViewPage
     },
