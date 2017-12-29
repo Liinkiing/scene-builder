@@ -15,7 +15,7 @@ class ObjectsManager {
   loadObject (name) {
     return new Promise(resolve => {
       let object = appStore.getObject(name)
-      console.log(object)
+      if (!object) return
       this.mtlLoader.load(object.mtlPath, materials => {
         materials.preload()
         this.loader.setMaterials(materials)

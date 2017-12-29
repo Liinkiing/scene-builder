@@ -20,6 +20,9 @@ export default class Grid extends THREE.Object3D {
     this.listeners = []
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
+    this.selectedObjectName = null
+    this.lastObjectRotation = null
+    this.selectedObject = null
     if (this.options.editionEnabled) {
       document.querySelector('#scene-builder').addEventListener('mousemove', this.onMouseMove.bind(this), false)
       document.querySelector('#scene-builder').addEventListener('mousedown', this.onMouseDown.bind(this), false)
@@ -70,13 +73,22 @@ export default class Grid extends THREE.Object3D {
 
   addObjectToTile (object, tile) {
     let posY = this.options.cubeSize
-    // [posX, posY, posZ] = [tile.userData.tilePosition.x * this.options.cubeSize + (this.options.cubeSize / 2), , tile.userData.tilePosition.z * this.options.cubeSize + (this.options.cubeSize / 2)]
     object.position.x = 0
     object.position.y = posY + (object.userData.yOffset || 0)
     object.position.z = 0
-    console.log(object)
+    if (this.lastObjectRotation) object.rotation.set(this.lastObjectRotation.x, this.lastObjectRotation.y, this.lastObjectRotation.z)
     tile.add(object)
     tile.userData.active = true
+  }
+
+  setPreviewObjectToTile (object, tile) {
+    let posY = this.options.cubeSize
+    object.name = this.selectedObjectName + '_preview'
+    object.position.x = 0
+    object.position.y = posY + (object.userData.yOffset || 0)
+    object.position.z = 0
+    if (this.lastObjectRotation) object.rotation.set(this.lastObjectRotation.x, this.lastObjectRotation.y, this.lastObjectRotation.z)
+    tile.add(object)
   }
 
   onMouseDown (e) {
@@ -94,6 +106,7 @@ export default class Grid extends THREE.Object3D {
           this.editingTile = null
           intersects[i].object.userData['active'] = false
         }
+
         if (this.listeners['caseclicked'] && this.listeners['caseclicked'].length > 0) {
           this.listeners['caseclicked'].forEach(listener => { listener(e, intersects[i].object) })
         }
@@ -110,6 +123,31 @@ export default class Grid extends THREE.Object3D {
     this.init()
   }
 
+  updateSelectedObject (objectName) {
+    this.selectedObjectName = objectName
+    objectManager.loadObject(this.selectedObjectName)
+      .then(object => {
+        object.name = objectName
+        object.traverse(node => {
+          if (node.material) {
+            let mat = node.material.clone()
+            mat.opacity = 0.5
+            mat.transparent = true
+            node.material = mat
+          }
+        })
+        this.selectedObject = object
+        this.container.children
+          .filter(tile => tile.userData['hovering'])
+          .forEach(tile => {
+            console.log(tile)
+            tile.children.forEach(child => {
+              tile.remove(child)
+            })
+          })
+      })
+  }
+
   render () {
     if (!this.options.editionEnabled) return
     this.raycaster.setFromCamera(this.mouse, this.camera)
@@ -120,13 +158,32 @@ export default class Grid extends THREE.Object3D {
     this.container.children
       .filter(tile => tile.userData['active'])
       .forEach(tile => tile.material.color.set(this.options.activeColor))
+    this.container.children
+      .forEach(tile => { tile.userData['hovering'] = false })
     if (!this.editingTile && intersects.length > 0) {
       for (let i = 0; i < intersects.length; i++) {
-        if (i === 0 && 'tag' in intersects[i].object.userData && intersects[i].object.userData.tag === 'FLOOR') {
-          intersects[i].object.material.color.set(this.options.hoverColor)
-        }
+        intersects[i].object.userData['hovering'] = i === 0 && 'tag' in intersects[i].object.userData && intersects[i].object.userData.tag === 'FLOOR'
       }
     }
+    this.container.children
+      .filter(tile => tile.userData['hovering'])
+      .forEach(tile => {
+        tile.material.color.set(this.options.hoverColor)
+      })
+    this.container.children
+      .filter(tile => tile.userData['hovering'])
+      .forEach(tile => {
+        if (this.selectedObject && tile.children.length === 0) {
+          this.setPreviewObjectToTile(this.selectedObject, tile)
+        }
+      })
+    this.container.children
+      .filter(tile => !tile.userData['hovering'] && tile.children.length > 0 && tile.children[0].name.includes('preview'))
+      .forEach(tile => {
+        tile.children.forEach(child => {
+          tile.remove(child)
+        })
+      })
   }
 
   load (gridData) {
@@ -137,6 +194,14 @@ export default class Grid extends THREE.Object3D {
       objectManager.loadObject(tileInformation.objectName)
       .then(object => {
         object.name = tileInformation.objectName
+        object.traverse(node => {
+          if (node.material) {
+            let mat = node.material.clone()
+            mat.opacity = 1
+            mat.transparent = false
+            node.material = mat
+          }
+        })
         object.rotation.set(tileInformation.rotation.x, tileInformation.rotation.y, tileInformation.rotation.z)
         this.addObjectToTile(object, tile)
       })

@@ -4,9 +4,8 @@ class SceneSerializer {
       tiles: {}
     }
     grid.container.children
-      .filter(tile => tile.children.length > 0)
+      .filter(tile => tile.userData['active'] && tile.children.length > 0)
       .forEach(tile => {
-        console.log(tile.children[0])
         json.tiles[tile.name] = {
           objectName: tile.children[0].name,
           rotation: {

@@ -8,6 +8,11 @@
         Voici l'url de votre scène : <router-link :to="{name: 'scene.view', params: {id: exportedScene.id}}">{{ getSceneViewUrl() }}</router-link>
       </p>
     </sweet-modal>
+    <sweet-modal ref="failedModal" icon="error" title="Une erreur est survenue...">
+      <p>
+        Oh non ! :( Une erreur est survenue durant l'exportation de votre scène. Veuillez ré-essayer plus tard.
+      </p>
+    </sweet-modal>
   </div>
 </template>
 
@@ -40,7 +45,11 @@ export default {
     }
   },
   mounted () {
-    EventBus.$on('grid.exported', (grid) => {
+    EventBus.$on('grid.export_failed', error => {
+      console.log(error)
+      this.$refs.failedModal.open()
+    })
+    EventBus.$on('grid.exported', grid => {
       console.log(grid, 'exported')
       this.exportedScene = grid
       this.$refs.exportModal.open()

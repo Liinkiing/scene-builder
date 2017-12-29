@@ -21,11 +21,14 @@ class AppStore {
   }
 
   setCurrentScene (id) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       apiWrapper.get(`scenes/${id}`)
         .then(data => {
           this.state.currentScene = data
           resolve()
+        })
+        .catch(error => {
+          reject(error)
         })
     })
   }

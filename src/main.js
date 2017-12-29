@@ -7,6 +7,8 @@ import router from './router'
 Vue.config.productionTip = false
 
 export const EventBus = new Vue()
+export const LS_SAVE_KEY = 'working_scene'
+
 
 /* eslint-disable no-new */
 new Vue({

@@ -7,6 +7,14 @@
     "scale": 200,
     "name": "Arbre de Noël"
   },
+  "christmas_tree2": {
+    "mtlPath": "christmas_tree2.mtl",
+    "objPath": "christmas_tree2.obj",
+    "imgPath": "christmas_tree.jpg",
+    "scale": 400,
+    "yOffset": 60,
+    "name": "Arbre de Noël 2"
+  },
   "christmas_present": {
     "mtlPath": "christmas_present.mtl",
     "objPath": "christmas_present.obj",

@@ -8,7 +8,7 @@
 
 import EffectComposer, { RenderPass, ShaderPass, CopyShader } from 'three-effectcomposer-es6'
 import Grid from './Grid'
-import { EventBus } from '../../main'
+import { EventBus, LS_SAVE_KEY } from '../../main'
 import { sceneSerializer } from '../../utils/SceneSerializer'
 import { objectManager } from '../../utils/ObjectsManager'
 import { apiWrapper } from '../../utils/ApiWrapper'
@@ -45,14 +45,23 @@ export default {
     window.THREE = THREE
     window.scene = this.scene
     if (this.editingMode) {
-      EventBus.$on('grid.clear', () => { this.grid.clearGrid() })
+      EventBus.$on('grid.clear', () => {
+        this.grid.clearGrid()
+        this.clearLocalStorage()
+      })
       EventBus.$on('grid.export', () => { this.exportGrid() })
+      this.grid.updateSelectedObject(this.selectedObject)
       this.initEventsListeners()
     }
     this.initLights()
-    if (!this.editingMode && this.selectedScene) {
+    if (this.selectedScene) {
+      console.log(this.selectedScene.data)
       this.grid.load(this.selectedScene.data)
       this.theta = 0
+    }
+    if (this.editingMode && window.localStorage.getItem(LS_SAVE_KEY)) {
+      let gridData = JSON.parse(window.localStorage.getItem(LS_SAVE_KEY));
+      this.grid.load(gridData)
     }
     // let controls = new OrbitControls(this.camera)
     this.renderer = new THREE.WebGLRenderer({antialias: true})
@@ -82,22 +91,29 @@ export default {
 
     this.renderer.animate(this.render.bind(this))
   },
+  watch: {
+    selectedObject(newVal) {
+      this.grid.updateSelectedObject(newVal)
+    }
+  },
   methods: {
     exportGrid () {
       let dataGrid = sceneSerializer.serialize(this.grid)
-      console.log(dataGrid)
       apiWrapper.post('scenes', { data: dataGrid })
         .then(data => {
           EventBus.$emit('grid.exported', data)
+        })
+        .catch(error => {
+          EventBus.$emit('grid.export_failed', error)
         })
     },
     initLights () {
       var directionalLight = new THREE.DirectionalLight(0xffffff)
       directionalLight.name = 'Light'
       directionalLight.position.x = 1
-      directionalLight.position.y = 1
+      directionalLight.position.y += 1
       directionalLight.position.z = 1
-      directionalLight.position.normalize()
+      // directionalLight.position.normalize()
       this.scene.add(directionalLight)
     },
 
@@ -130,16 +146,31 @@ export default {
       this.fxaaPass.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
     },
 
+    saveToLocalStorage () {
+      let dataGrid = sceneSerializer.serialize(this.grid)
+      window.localStorage.setItem(LS_SAVE_KEY, JSON.stringify(dataGrid))
+      console.log(dataGrid, 'SAVED ')
+    },
+
+    clearLocalStorage () {
+      window.localStorage.removeItem(LS_SAVE_KEY)
+    },
+
     initEventsListeners () {
+      window.onbeforeunload = () => {
+        this.saveToLocalStorage()
+      }
       this.grid.addEventListener('caseclicked', (e, tile) => {
-        if (e.which === 3 && tile.children.length > 0) {
+        let childrens = tile.children.filter(child => !child.name.includes('preview'));
+        if (e.which === 3 && childrens.length > 0) {
           tile.children = []
+          console.log('SUPPRIME')
           EventBus.$emit('grid.item_removed')
           return
         }
         if (e.which !== 1) return
-        if (tile.children.length > 0) {
-          if (tile.children[0].name !== this.selectedObject) {
+        if (childrens.length > 0) {
+          if (childrens[0].name !== this.selectedObject) {
             tile.children = []
             objectManager.loadObject(this.selectedObject)
               .then(object => {
@@ -153,6 +184,7 @@ export default {
               EventBus.$emit('grid.item_added')
               object.name = this.selectedObject
               this.grid.addObjectToTile(object, tile)
+              this.grid.lastObjectRotation = object.rotation
             })
         }
       })
@@ -160,7 +192,9 @@ export default {
         let deltaX = e.clientX - this.grid.lastMousePosition.x
         this.grid.lastMousePosition.x = e.clientX
         this.grid.lastMousePosition.y = e.clientY
-        if (tile.children.length > 0) tile.children[0].rotateY(deltaX / 100)
+        if (tile.children.length > 0) {
+          tile.children[0].rotateY(deltaX / 100)
+        }
       })
     }
   }

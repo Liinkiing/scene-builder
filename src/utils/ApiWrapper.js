@@ -21,7 +21,10 @@ class ApiWrapper {
       headers: this.headers
     })
     return fetch(this.request)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw Error(response.statusText)
+        return response.json()
+      })
   }
 
   post (endpoint, data) {
@@ -32,7 +35,10 @@ class ApiWrapper {
       body: JSON.stringify(data)
     })
     return fetch(this.request)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw Error(response.statusText)
+        return response.json()
+      })
   }
 }
 
