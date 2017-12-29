@@ -24,10 +24,17 @@ export default {
     editingMode: {type: Boolean, default: true},
     selectedScene: {type: Object, default: null}
   },
+  destroyed () {
+    while(this.scene.children.length > 0) {
+      this.scene.remove(this.scene.children[0]);
+    }
+    if (this.rafId) cancelAnimationFrame(this.rafId)
+    this.renderer.dispose()
+  },
   mounted () {
     this.container = document.querySelector('#scene-builder')
     let aspect = window.innerWidth / window.innerHeight
-    this.camera = new THREE.OrthographicCamera(frustumSize * aspect / -2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / -2, 2, 9000)
+    this.camera = new THREE.OrthographicCamera(frustumSize * aspect / -2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / -2, 0.1, 9000)
     this.camera.position.y = 400
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('cyan')
@@ -89,7 +96,7 @@ export default {
     window.addEventListener('resize', this.onWindowResize.bind(this), false)
     this.onWindowResize()
 
-    this.renderer.animate(this.render.bind(this))
+    this.render()
   },
   watch: {
     selectedObject(newVal) {
@@ -118,6 +125,7 @@ export default {
     },
 
     render () {
+      this.rafId = requestAnimationFrame(this.render.bind(this))
       if (!this.editingMode) {
         this.theta += 0.0005
         this.camera.position.x = 1000 * Math.cos(this.theta)

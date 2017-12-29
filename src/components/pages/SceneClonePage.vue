@@ -25,7 +25,7 @@ export default {
   data () {
     return {
       isLoading: true,
-      appState: appStore.state,
+      appState: appStore.state
     }
   },
   computed: {

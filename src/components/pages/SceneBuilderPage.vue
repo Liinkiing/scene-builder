@@ -47,12 +47,16 @@ export default {
   mounted () {
     EventBus.$on('grid.export_failed', error => {
       console.log(error)
-      this.$refs.failedModal.open()
+      if (this.$refs.failedModal) {
+        this.$refs.failedModal.open()
+      }
     })
     EventBus.$on('grid.exported', grid => {
       console.log(grid, 'exported')
       this.exportedScene = grid
-      this.$refs.exportModal.open()
+      if (this.$refs.exportModal) {
+        this.$refs.exportModal.open()
+      }
     })
   }
 }

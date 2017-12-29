@@ -15,12 +15,20 @@ class ObjectsManager {
   loadObject (name) {
     return new Promise(resolve => {
       let object = appStore.getObject(name)
+      let scale = object.scale || 200
       if (!object) return
+      let cachedObject = THREE.Cache.get(object.objPath)
+      if (cachedObject) {
+        let cached = this.loader.parse(cachedObject)
+        if (object.yOffset) cached.userData['yOffset'] = object.yOffset
+        cached.scale.set(scale, scale, scale)
+        resolve(cached)
+        return
+      }
       this.mtlLoader.load(object.mtlPath, materials => {
         materials.preload()
         this.loader.setMaterials(materials)
         this.loader.load(object.objPath, obj => {
-          let scale = object.scale || 200
           if (object.yOffset) obj.userData['yOffset'] = object.yOffset
           obj.scale.set(scale, scale, scale)
           resolve(obj)
