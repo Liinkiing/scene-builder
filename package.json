@@ -22,6 +22,7 @@
     "three-orbit-controls": "^82.1.0",
     "three-shader-fxaa": "^5.1.1",
     "vue": "^2.5.2",
+    "connect-history-api-fallback": "^1.5.0",
     "vue-router": "^3.0.1"
   },
   "devDependencies": {

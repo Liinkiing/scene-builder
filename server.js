@@ -2,6 +2,7 @@ let express = require('express');
 let path = require('path');
 let serveStatic = require('serve-static');
 app = express();
+app.use(require('connect-history-api-fallback')())
 app.use(serveStatic(__dirname + "/dist", {
   maxAge: '1d'
 }));
