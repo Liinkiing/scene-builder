@@ -1,4 +1,4 @@
-const API_URL = 'https://builderama-api.herokuapp.com/api'
+const API_URL = 'https://builderama-api.herokuapp.com'
 
 class ApiWrapper {
   constructor () {
