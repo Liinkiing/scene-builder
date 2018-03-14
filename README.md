@@ -1,6 +1,7 @@
 # scene-builder
 
-> A simple ThreeJS experiment where you can build a scene with Google Poly
+> A simple ThreeJS experiment where you can build a scene with Google Poly.  
+Test here (not finished) : [https://builderama.herokuapp.com](https://builderama.herokuapp.com)
 
 ## Build Setup
 
